@@ -19,6 +19,10 @@ func main() {
 			if len(params) > 0 {
 				command := params[0]
 
+				if command == "exit" {
+					break
+				}
+
 				fmt.Printf("%s: command not found\n", command)
 			}
 
