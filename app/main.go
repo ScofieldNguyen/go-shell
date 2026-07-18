@@ -32,7 +32,7 @@ ShellLoop:
 						if slices.Contains(builtinCommands, checkCommand) {
 							fmt.Printf("%s is a shell builtin\n", checkCommand)
 						} else {
-							fmt.Printf("%s: command not found\n", checkCommand)
+							fmt.Printf("%s: not found\n", checkCommand)
 						}
 					} else {
 						fmt.Println("Please input a command")
