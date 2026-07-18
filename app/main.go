@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,7 +10,7 @@ import (
 	"strings"
 )
 
-var handlers map[string]func([]string)
+var builtinCommandHandlers map[string]func([]string)
 
 func handleEcho(params []string) {
 	fmt.Println(strings.Join(params[1:], " "))
@@ -18,7 +19,7 @@ func handleEcho(params []string) {
 func handleType(params []string) {
 	if len(params) > 1 {
 		checkCommand := params[1]
-		if handlers[checkCommand] != nil {
+		if builtinCommandHandlers[checkCommand] != nil {
 			fmt.Printf("%s is a shell builtin\n", checkCommand)
 		} else {
 			path, err := exec.LookPath(checkCommand)
@@ -42,8 +43,29 @@ func handleExit(params []string) {
 	os.Exit(0)
 }
 
+func commandHandler(params []string) error {
+	if len(params) == 0 {
+		return errors.New("no provided params")
+	}
+
+	command := params[0]
+
+	cmd := exec.Command(command, params[1:]...)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+
+	if err := cmd.Run(); err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return fmt.Errorf("%s: command not found", command)
+		}
+		return err
+	}
+
+	return nil
+}
+
 func init() {
-	handlers = map[string]func([]string){
+	builtinCommandHandlers = map[string]func([]string){
 		"echo": handleEcho,
 		"type": handleType,
 		"exit": handleExit,
@@ -61,10 +83,13 @@ func main() {
 
 			if len(params) > 0 {
 				command := params[0]
-				if handler := handlers[command]; handler != nil {
-					handler(params)
+				if builtinHandler := builtinCommandHandlers[command]; builtinHandler != nil {
+					builtinHandler(params)
 				} else {
-					fmt.Printf("%s: command not found\n", command)
+					err := commandHandler(params)
+					if err != nil {
+						fmt.Fprintln(os.Stderr, err)
+					}
 				}
 			}
 		}
