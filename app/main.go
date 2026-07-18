@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
+
+var builtinCommands = []string{"type", "exit", "echo"}
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -23,6 +26,17 @@ ShellLoop:
 					break ShellLoop
 				case "echo":
 					fmt.Println(strings.Join(params[1:], " "))
+				case "type":
+					if len(params) > 1 {
+						checkCommand := params[1]
+						if slices.Contains(builtinCommands, checkCommand) {
+							fmt.Printf("%s is a shell builtin\n", checkCommand)
+						} else {
+							fmt.Printf("%s: command not found\n", checkCommand)
+						}
+					} else {
+						fmt.Println("Please input a command")
+					}
 				default:
 					fmt.Printf("%s: command not found\n", command)
 				}
