@@ -10,6 +10,7 @@ import (
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
+ShellLoop:
 	for {
 		fmt.Print("$ ")
 		if scanner.Scan() {
@@ -17,18 +18,20 @@ func main() {
 			params := strings.Fields(line)
 
 			if len(params) > 0 {
-				command := params[0]
-
-				if command == "exit" {
-					break
+				switch command := params[0]; command {
+				case "exit":
+					break ShellLoop
+				case "echo":
+					fmt.Println(strings.Join(params[1:], " "))
+				default:
+					fmt.Printf("%s: command not found\n", command)
 				}
-
-				fmt.Printf("%s: command not found\n", command)
 			}
 
-			if err := scanner.Err(); err != nil {
-				break
-			}
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 	}
 }
