@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"slices"
 	"strings"
 )
@@ -32,7 +33,12 @@ ShellLoop:
 						if slices.Contains(builtinCommands, checkCommand) {
 							fmt.Printf("%s is a shell builtin\n", checkCommand)
 						} else {
-							fmt.Printf("%s: not found\n", checkCommand)
+							path, err := exec.LookPath(checkCommand)
+							if err != nil {
+								fmt.Printf("%s: not found\n", checkCommand)
+							} else {
+								fmt.Printf("%s is %s\n", checkCommand, path)
+							}
 						}
 					} else {
 						fmt.Println("Please input a command")
@@ -41,7 +47,6 @@ ShellLoop:
 					fmt.Printf("%s: command not found\n", command)
 				}
 			}
-
 		}
 	}
 
