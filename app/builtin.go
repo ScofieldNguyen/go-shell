@@ -46,3 +46,22 @@ func handlePwd(params []string) {
 	}
 	fmt.Println(path)
 }
+
+func handleCd(params []string) {
+	var path string
+	if len(params) < 2 {
+		homedir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		path = homedir
+	}
+
+	path = params[1]
+
+	err := os.Chdir(path)
+	if err != nil {
+		fmt.Printf("cd: %s: No such file or directory\n", path)
+	}
+}
