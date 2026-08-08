@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 )
 
-func commandHandler(params []string) error {
+func commandHandler(params []string, writer io.Writer) error {
 	if len(params) == 0 {
 		return errors.New("no provided params")
 	}
@@ -16,7 +17,7 @@ func commandHandler(params []string) error {
 
 	cmd := exec.Command(command, params[1:]...)
 	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = writer
 
 	if err := cmd.Run(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
