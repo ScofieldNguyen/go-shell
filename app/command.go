@@ -8,9 +8,10 @@ import (
 	"os/exec"
 )
 
-func commandHandler(params []string, writer io.Writer) error {
+func commandHandler(params []string, writer io.Writer) {
 	if len(params) == 0 {
-		return errors.New("no provided params")
+		fmt.Fprintln(os.Stderr, "no provided params")
+		return
 	}
 
 	command := params[0]
@@ -21,10 +22,7 @@ func commandHandler(params []string, writer io.Writer) error {
 
 	if err := cmd.Run(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
-			return fmt.Errorf("%s: command not found", command)
+			fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
 		}
-		return err
 	}
-
-	return nil
 }

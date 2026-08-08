@@ -44,10 +44,7 @@ func main() {
 				if builtinHandler := builtinCommandHandlers[command]; builtinHandler != nil {
 					builtinHandler(params, writer)
 				} else {
-					err := commandHandler(params, writer)
-					if err != nil {
-						fmt.Fprintln(os.Stderr, err)
-					}
+					commandHandler(params, writer)
 				}
 
 				// close writer
