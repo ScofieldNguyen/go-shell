@@ -4,25 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 )
 
-func commandHandler(params []string, writer io.Writer) {
+func commandHandler(params []string, outWriter io.Writer, errWriter io.Writer) {
 	if len(params) == 0 {
-		fmt.Fprintln(os.Stderr, "no provided params")
+		fmt.Fprintln(errWriter, "no provided params")
 		return
 	}
 
 	command := params[0]
 
 	cmd := exec.Command(command, params[1:]...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = writer
+	cmd.Stderr = errWriter
+	cmd.Stdout = outWriter
 
 	if err := cmd.Run(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
-			fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
+			fmt.Fprintf(errWriter, "%s: command not found\n", command)
 		}
 	}
 }
