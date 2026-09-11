@@ -22,41 +22,53 @@ func init() {
 // if params contains redirect then strip it and returns file writer
 // if not just returns regular os.stdout
 func parseRedirect(params []string) (io.Writer, io.Writer, []string) {
+	infoChannel := os.Stdout
+	errChannel := os.Stderr
+
 	// has output redirect command
-	if redirectIndex := indexOfTarges(params, []string{">", "1>", "2>", ">>"}); redirectIndex != -1 {
-		// create the file target
+	if redirectIndex := indexOfTarges(params, []string{">", "1>", "2>", ">>", "1>>", "2>>"}); redirectIndex != -1 {
+		// get file path
 		if redirectIndex+1 >= len(params) {
 			fmt.Fprintln(os.Stderr, "syntax error: no redirect target")
 			return os.Stdout, os.Stderr, params
 		}
 		filePath := params[redirectIndex+1]
 
-		// open the file
 		var file *os.File
 		var err error
 
-		if indexOf(params, ">>") != -1 {
+		// info channel
+		if indexOfTarges(params, []string{">", "1>"}) != -1 {
 			// create mode
-			file, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-		} else {
-			// append mode
 			file, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+
+			if err != nil {
+				fmt.Println(err)
+				return infoChannel, errChannel, params
+			}
+
+			infoChannel = file
+		} else if indexOfTarges(params, []string{">>", "1>>"}) != -1 {
+			// append mode
+			file, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+
+			if err != nil {
+				fmt.Println(err)
+				return infoChannel, errChannel, params
+			}
+
+			infoChannel = file
 		}
 
-		if err != nil {
-			fmt.Println(err)
-			return os.Stdout, os.Stderr, params
+		// error channel
+		if indexOfTarges(params, []string{"2>", "2>>"}) != -1 {
+			errChannel = file
 		}
 
-		if indexOf(params, "2>") != -1 {
-			// error channel
-			return os.Stdout, file, params[:redirectIndex]
-		}
-
-		return file, os.Stderr, params[:redirectIndex]
+		return infoChannel, errChannel, params[:redirectIndex] // remove file path from params
 	}
 
-	return os.Stdout, os.Stderr, params
+	return infoChannel, errChannel, params
 }
 
 func main() {
