@@ -10,6 +10,7 @@ func TestIndexOfTargets(t *testing.T) {
 		want    int
 	}{
 		{"first item matches", []string{"echo", "something", "2>", "output.txt"}, []string{">>", "1>>"}, -1},
+		{"first item matches", []string{"echo", "something", "1>", "output.txt"}, []string{"2>", "2>>"}, -1},
 	}
 
 	for _, tt := range tests {

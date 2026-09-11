@@ -62,6 +62,24 @@ func parseRedirect(params []string) (io.Writer, io.Writer, []string) {
 
 		// error channel
 		if indexOfTarges(params, []string{"2>", "2>>"}) != -1 {
+			// create mode
+			file, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+
+			if err != nil {
+				fmt.Println(err)
+				return infoChannel, errChannel, params
+			}
+
+			errChannel = file
+		} else if indexOfTarges(params, []string{"2>", "2>>"}) != -1 {
+			// append mode
+			file, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+
+			if err != nil {
+				fmt.Println(err)
+				return infoChannel, errChannel, params
+			}
+
 			errChannel = file
 		}
 
