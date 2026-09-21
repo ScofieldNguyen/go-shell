@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -23,6 +24,11 @@ func (c *Completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 			end := command[len(input):]
 			result = append(result, []rune(end + " "))
 		}
+	}
+
+	// bell alert
+	if len(result) == 0 {
+		fmt.Print("\x07")
 	}
 
 	return result, len(result)
