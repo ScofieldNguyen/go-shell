@@ -92,6 +92,7 @@ func parseRedirect(params []string) (io.Writer, io.Writer, []string) {
 }
 
 func main() {
+	completer := buildCompleter()
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:          "$ ",
 		InterruptPrompt: "^C",

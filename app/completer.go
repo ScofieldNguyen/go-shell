@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -11,11 +12,7 @@ type Completer struct {
 
 func (c *Completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 	input := string(line[:pos])
-
-	// only handle first word
-	if strings.Contains(input, " ") {
-		return nil, 0
-	}
+	input = strings.Trim(input, " ")
 
 	var result [][]rune
 
@@ -34,9 +31,53 @@ func (c *Completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 	return result, len(result)
 }
 
-var completer = Completer{
-	commands: []string{
-		"echo",
-		"exit",
-	},
+func listExecutables(path string) ([]string, error) {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var executables []string
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+
+		if info.Mode()&0111 != 0 {
+			executables = append(executables, entry.Name())
+		}
+	}
+
+	return executables, nil
+}
+
+func buildCompleter() Completer {
+	completer := Completer{
+		commands: []string{
+			"echo",
+			"exit",
+		},
+	}
+
+	// executables
+	path := os.Getenv("PATH")
+
+	for dir := range strings.SplitSeq(path, string(os.PathListSeparator)) {
+		executables, err := listExecutables(dir)
+		if err != nil {
+			continue
+		}
+
+		for _, executable := range executables {
+			completer.commands = append(completer.commands, executable)
+		}
+	}
+	
+	return completer
 }
