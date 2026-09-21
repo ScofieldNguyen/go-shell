@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/chzyer/readline"
+	"github.com/google/shlex"
 	"io"
 	"os"
 )
@@ -90,26 +92,41 @@ func parseRedirect(params []string) (io.Writer, io.Writer, []string) {
 }
 
 func main() {
+	rl, err := readline.New("$ ")
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer rl.Close()
+
 	for {
-		fmt.Print("$ ")
-		if params, err := getParams(); err == nil {
-			if len(params) > 0 {
-				outWriter, errWriter, params := parseRedirect(params)
+		line, err := rl.Readline()
+		if err != nil {
+			break
+		}
 
-				command := params[0]
-				if builtinHandler := builtinCommandHandlers[command]; builtinHandler != nil {
-					builtinHandler(params, outWriter, errWriter)
-				} else {
-					commandHandler(params, outWriter, errWriter)
-				}
+		params, err := shlex.Split(line)
+		if err != nil {
+			break
+		}
 
-				// close writers
-				if f, ok := outWriter.(*os.File); ok && f != os.Stdout {
-					f.Close()
-				}
-				if f, ok := errWriter.(*os.File); ok && f != os.Stderr {
-					f.Close()
-				}
+		if len(params) > 0 {
+			outWriter, errWriter, params := parseRedirect(params)
+
+			command := params[0]
+			if builtinHandler := builtinCommandHandlers[command]; builtinHandler != nil {
+				builtinHandler(params, outWriter, errWriter)
+			} else {
+				commandHandler(params, outWriter, errWriter)
+			}
+
+			// close writers
+			if f, ok := outWriter.(*os.File); ok && f != os.Stdout {
+				f.Close()
+			}
+			if f, ok := errWriter.(*os.File); ok && f != os.Stderr {
+				f.Close()
 			}
 		}
 	}
