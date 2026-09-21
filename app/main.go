@@ -92,7 +92,12 @@ func parseRedirect(params []string) (io.Writer, io.Writer, []string) {
 }
 
 func main() {
-	rl, err := readline.New("$ ")
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:          "$ ",
+		InterruptPrompt: "^C",
+		EOFPrompt:       "exit",
+		AutoComplete:    &completer,
+	})
 
 	if err != nil {
 		panic(err)
